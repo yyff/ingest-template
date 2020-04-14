@@ -1,0 +1,33 @@
+---
+"Test ingest fingerprint processor with defaults":
+  - do:
+      ingest.put_pipeline:
+        id: "my_pipeline"
+        body:  >
+          {
+            "description": "_description",
+            "processors": [
+              {
+                "fingerprint" : {
+                  "field" : "field1",
+                  "target_field": "field2",
+                  "ignore_missing": true
+                }
+              }
+            ]
+          }
+  - match: { acknowledged: true }
+
+  - do:
+      index:
+        index: test
+        id: 1
+        pipeline: "my_pipeline"
+        body: { field1: "VGhpcyBpcyBhbiBlbmdsaXNoIHRleHQgdG8gdGVzdCBpZiB0aGUgcGlwZWxpbmUgd29ya3M=" }
+
+  - do:
+      get:
+        index: test
+        id: 1
+  - match: { _source.field1: "VGhpcyBpcyBhbiBlbmdsaXNoIHRleHQgdG8gdGVzdCBpZiB0aGUgcGlwZWxpbmUgd29ya3M=" }
+
